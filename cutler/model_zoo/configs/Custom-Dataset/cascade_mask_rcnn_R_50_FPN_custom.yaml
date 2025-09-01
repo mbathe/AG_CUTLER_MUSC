@@ -1,0 +1,99 @@
+# Configuration pour l'entraînement de CutLER sur un dataset personnalisé
+# Basé sur le modèle Cascade Mask R-CNN avec ResNet-50 et FPN
+
+_BASE_: "../Base-RCNN-FPN.yaml"
+
+MODEL:
+  WEIGHTS: "detectron2://ImageNetPretrained/MSRA/R-50.pkl"
+  MASK_ON: True
+  BACKBONE:
+    NAME: "build_resnet_fpn_backbone"
+  RESNETS:
+    DEPTH: 50
+    OUT_FEATURES: ["res2", "res3", "res4", "res5"]
+  FPN:
+    IN_FEATURES: ["res2", "res3", "res4", "res5"]
+  ANCHOR_GENERATOR:
+    SIZES: [[32], [64], [128], [256], [512]]
+    ASPECT_RATIOS: [[0.5, 1.0, 2.0]]
+  RPN:
+    IN_FEATURES: ["p2", "p3", "p4", "p5", "p6"]
+    PRE_NMS_TOPK_TRAIN: 2000
+    PRE_NMS_TOPK_TEST: 1000
+    POST_NMS_TOPK_TRAIN: 1000
+    POST_NMS_TOPK_TEST: 1000
+  ROI_HEADS:
+    NAME: "CascadeROIHeads"
+    IN_FEATURES: ["p2", "p3", "p4", "p5"]
+    NUM_CLASSES: 3  # Ajuster selon votre nombre de classes
+    BATCH_SIZE_PER_IMAGE: 512
+    POSITIVE_FRACTION: 0.25
+    IOU_THRESHOLDS: [0.5, 0.6, 0.7]
+    IOU_LABELS: [0, -1, 1]
+    CLS_DROPOUT: True
+    CLS_DROPOUT_PROB: 0.8
+    USE_DROPLOSS: False
+    DROPLOSS_IOU_THRESH: 0.0
+  ROI_BOX_HEAD:
+    NAME: "FastRCNNConvFCHead"
+    NUM_FC: 2
+    POOLER_RESOLUTION: 7
+  ROI_MASK_HEAD:
+    NAME: "MaskRCNNConvUpsampleHead"
+    NUM_CONV: 4
+    POOLER_RESOLUTION: 14
+
+DATASETS:
+  TRAIN: ("custom_train",)  # Sera remplacé automatiquement
+  TEST: ("custom_val",)     # Sera remplacé automatiquement
+
+DATALOADER:
+  NUM_WORKERS: 2
+  COPY_PASTE: False
+  COPY_PASTE_RATE: 0.0
+  COPY_PASTE_MIN_RATIO: 0.5
+  COPY_PASTE_MAX_RATIO: 1.0
+  COPY_PASTE_RANDOM_NUM: True
+  VISUALIZE_COPY_PASTE: False
+
+SOLVER:
+  IMS_PER_BATCH: 2
+  BASE_LR: 0.001
+  BASE_LR_MULTIPLIER: 1
+  BASE_LR_MULTIPLIER_NAMES: []
+  MOMENTUM: 0.9
+  WEIGHT_DECAY: 0.0001
+  WEIGHT_DECAY_NORM: 0.0
+  GAMMA: 0.1
+  STEPS: (2000, 2500)
+  MAX_ITER: 3000
+  WARMUP_FACTOR: 0.001
+  WARMUP_ITERS: 100
+  WARMUP_METHOD: "linear"
+  CHECKPOINT_PERIOD: 500
+
+INPUT:
+  MIN_SIZE_TRAIN: (640, 672, 704, 736, 768, 800)
+  MAX_SIZE_TRAIN: 1333
+  MIN_SIZE_TEST: 800
+  MAX_SIZE_TEST: 1333
+  MASK_FORMAT: "polygon"
+  FORMAT: "BGR"
+
+AUGMENTATION:
+  TRAIN_PIPELINES: [
+    ["ResizeShortestEdge", {"short_edge_length": [400, 500, 600], "max_size": 1333, "sample_style": "choice"}],
+    ["RandomFlip", {}],
+  ]
+  TEST_PIPELINES: [
+    ["ResizeShortestEdge", {"short_edge_length": 800, "max_size": 1333}],
+  ]
+
+TEST:
+  EVAL_PERIOD: 500
+  DETECTIONS_PER_IMAGE: 100
+  NO_SEGM: False
+
+OUTPUT_DIR: "./output/custom_dataset"
+
+VERSION: 2

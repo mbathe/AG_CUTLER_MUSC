@@ -1,0 +1,95 @@
+[08/26 21:03:35] detectron2 INFO: Rank of current process: 3. World size: 8
+[08/26 21:03:35] detectron2 INFO: Environment info:
+-------------------------------  ----------------------------------------------------------------------------------
+sys.platform                     linux
+Python                           3.11.13 (main, Jun  5 2025, 13:12:00) [GCC 11.2.0]
+numpy                            2.2.6
+detectron2                       0.6 @/home/paul/Cours/Stage_ST/code/CutLER/detectron2/detectron2
+Compiler                         GCC 13.3
+CUDA compiler                    not available
+DETECTRON2_ENV_MODULE            <not set>
+PyTorch                          2.5.1 @/home/paul/miniconda3/envs/cutler/lib/python3.11/site-packages/torch
+PyTorch debug build              False
+torch._C._GLIBCXX_USE_CXX11_ABI  False
+GPU available                    No: torch.cuda.is_available() == False
+Pillow                           11.3.0
+torchvision                      0.20.1 @/home/paul/miniconda3/envs/cutler/lib/python3.11/site-packages/torchvision
+fvcore                           0.1.5.post20221221
+iopath                           0.1.9
+cv2                              4.12.0
+-------------------------------  ----------------------------------------------------------------------------------
+PyTorch built with:
+  - GCC 9.3
+  - C++ Version: 201703
+  - Intel(R) oneAPI Math Kernel Library Version 2023.1-Product Build 20230303 for Intel(R) 64 architecture applications
+  - Intel(R) MKL-DNN v3.5.3 (Git Hash 66f0cb9eb66affd2da3bf5f8d897376f04aae6af)
+  - OpenMP 201511 (a.k.a. OpenMP 4.5)
+  - LAPACK is enabled (usually provided by MKL)
+  - NNPACK is enabled
+  - CPU capability usage: AVX512
+  - Build settings: BLAS_INFO=mkl, BUILD_TYPE=Release, CUDA_VERSION=12.4, CUDNN_VERSION=9.1.0, CXX_COMPILER=/opt/rh/devtoolset-9/root/usr/bin/c++, CXX_FLAGS= -D_GLIBCXX_USE_CXX11_ABI=0 -fabi-version=11 -fvisibility-inlines-hidden -DUSE_PTHREADPOOL -DNDEBUG -DUSE_KINETO -DLIBKINETO_NOROCTRACER -DLIBKINETO_NOXPUPTI=ON -DUSE_FBGEMM -DUSE_PYTORCH_QNNPACK -DUSE_XNNPACK -DSYMBOLICATE_MOBILE_DEBUG_HANDLE -O2 -fPIC -Wall -Wextra -Werror=return-type -Werror=non-virtual-dtor -Werror=bool-operation -Wnarrowing -Wno-missing-field-initializers -Wno-type-limits -Wno-array-bounds -Wno-unknown-pragmas -Wno-unused-parameter -Wno-strict-overflow -Wno-strict-aliasing -Wno-stringop-overflow -Wsuggest-override -Wno-psabi -Wno-error=old-style-cast -Wno-missing-braces -fdiagnostics-color=always -faligned-new -Wno-unused-but-set-variable -Wno-maybe-uninitialized -fno-math-errno -fno-trapping-math -Werror=format -Wno-stringop-overflow, LAPACK_INFO=mkl, PERF_WITH_AVX=1, PERF_WITH_AVX2=1, TORCH_VERSION=2.5.1, USE_CUDA=ON, USE_CUDNN=ON, USE_CUSPARSELT=1, USE_EXCEPTION_PTR=1, USE_GFLAGS=OFF, USE_GLOG=OFF, USE_GLOO=ON, USE_MKL=ON, USE_MKLDNN=ON, USE_MPI=OFF, USE_NCCL=ON, USE_NNPACK=ON, USE_OPENMP=ON, USE_ROCM=OFF, USE_ROCM_KERNEL_ASSERT=OFF, 
+
+[08/26 21:03:35] detectron2 INFO: Command line arguments: Namespace(config_file='model_zoo/configs/CutLER-ImageNet/cascade_mask_rcnn_R_50_FPN.yaml', resume=False, eval_only=False, num_gpus=8, num_machines=1, machine_rank=0, test_dataset='', train_dataset='', no_segm=False, dist_url='tcp://127.0.0.1:50152', opts=[])
+[08/26 21:03:35] detectron2 INFO: Contents of args.config_file=model_zoo/configs/CutLER-ImageNet/cascade_mask_rcnn_R_50_FPN.yaml:
+_BASE_: "../Base-RCNN-FPN.yaml"
+DATALOADER:
+  COPY_PASTE: True
+  COPY_PASTE_RATE: 1.0
+  VISUALIZE_COPY_PASTE: False
+  COPY_PASTE_RANDOM_NUM: True
+  COPY_PASTE_MIN_RATIO: 0.3
+  COPY_PASTE_MAX_RATIO: 1.0
+  NUM_WORKERS: 0
+MODEL:
+  PIXEL_MEAN: [123.675, 116.280, 103.530]
+  PIXEL_STD: [58.395, 57.120, 57.375]
+  WEIGHTS: 'http://dl.fbaipublicfiles.com/cutler/checkpoints/dino_RN50_pretrain_d2_format.pkl'
+  MASK_ON: True
+  BACKBONE:
+    FREEZE_AT: 0
+  RESNETS:
+    DEPTH: 50
+    NORM: "SyncBN"
+    STRIDE_IN_1X1: False
+  FPN:
+    NORM: "SyncBN"
+  ROI_BOX_HEAD:
+    CLS_AGNOSTIC_BBOX_REG: True
+  ROI_HEADS:
+    NAME: CustomCascadeROIHeads
+    NUM_CLASSES: 1
+    SCORE_THRESH_TEST: 0.0
+    POSITIVE_FRACTION: 0.25
+    USE_DROPLOSS: True
+    DROPLOSS_IOU_THRESH: 0.01
+  RPN:
+    POST_NMS_TOPK_TRAIN: 4000
+    NMS_THRESH: 0.65
+DATASETS:
+  TRAIN: ("imagenet_train",)
+SOLVER:
+  IMS_PER_BATCH: 16
+  BASE_LR: 0.01
+  WEIGHT_DECAY: 0.00005
+  STEPS: (80000,)
+  MAX_ITER: 160000
+  GAMMA: 0.02
+  CLIP_GRADIENTS:
+    CLIP_TYPE: norm
+    CLIP_VALUE: 1.0
+    ENABLED: true
+    NORM_TYPE: 2.0
+  AMP:
+    ENABLED: True
+INPUT:
+  MIN_SIZE_TRAIN: (240, 320, 480, 640, 672, 704, 736, 768, 800, 1024)
+  MAX_SIZE_TRAIN: 1333
+  MASK_FORMAT: "bitmask"
+  FORMAT: "RGB"
+TEST:
+  PRECISE_BN:
+    ENABLED: True
+    NUM_ITER: 200
+  DETECTIONS_PER_IMAGE: 100
+OUTPUT_DIR: "output/"
+[08/26 21:03:35] detectron2.utils.env INFO: Using a generated random seed 35649479
